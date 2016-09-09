@@ -39,8 +39,8 @@ uploadArchives {
     repositories.mavenDeployer {
 
         configuration = configurations.deployLibrary
-
-        repository(url: 'git:releases://git@github.com:'+COMPANY+'/maven.git'){
+        repository(url: 'git:releases://https://github.com/zucred/maven.git') {
+        //repository(url: 'git:releases://git@github.com:'+COMPANY+'/maven.git'){
             authentication(userName: USERNAME, password: PASSWORD)
         }
 
