@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+apply from: 'https://raw.githubusercontent.com/zucred/maven/master/publish-github.gradle'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '25.0.0'
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+configurations {
+    deployLibrary
+}
+
+repositories {
+    maven {
+        url "https://raw.github.com/synergian/wagon-git/releases"
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:25.0.0'
+    deployLibrary "ar.com.synergian:wagon-git:0.3.0"
+}
+
+apply plugin: 'maven'
+
+uploadArchives {
+    repositories.mavenDeployer {
+
+        configuration = configurations.deployLibrary
+        //repository(url: 'git:releases://https://github.com/zucred/maven.git') {
+        repository(url: 'git:releases://https://github.com/'+COMPANY+'/'+REPOSITORY_NAME+'.git'){
+        //repository(url: 'git:releases://git@github.com:'+COMPANY+'/maven.git'){
+            // place a gradle.properties at ~/.gradle file for such a definitions
+            authentication(userName: USERNAME, password: PASSWORD)
+        }
+
+        uniqueVersion = true
+
+        pom.project {
+            groupId = ARTIFACT_PACKAGE
+            version = ARTIFACT_VERSION
+            artifactId = ARTIFACT_NAME
+            packaging ARTIFACT_PACKAGING
+        }
+
+    }
+}
