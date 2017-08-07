@@ -223,7 +223,7 @@ public class Log extends RootLogConfiguration implements LogFactory {
                     appenders.put(logAppender.name, logAppender);
                 }
             } catch (Exception ex) {
-              android.util.Log.v("Error","Error on add appenders" +  ex.getMessage());
+              android.util.Log.e("Error", "Error on add appenders\n" +  ex.getMessage());
             }
         }
 
