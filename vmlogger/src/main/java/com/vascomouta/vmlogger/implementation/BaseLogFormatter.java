@@ -17,33 +17,31 @@ import java.util.Locale;
 import java.util.Map;
 
 
-public class BaseLogFormatter implements LogFormatter {
-
+public class BaseLogFormatter extends LogFormatter {
 
     private DateFormat dateFormate;
     private int severityTagLength;
     private int identityTagLength;
 
     protected BaseLogFormatter(){
-
+        super();
+        this.dateFormate = timeStampFormatter();
     }
 
     public BaseLogFormatter(DateFormat dateFormatter, int severityTagLenght, int identityTagLenght){
+        super();
         this.dateFormate = dateFormatter;
         this.severityTagLength = severityTagLenght;
         this.identityTagLength = identityTagLenght;
     }
 
-    @Override
-    public void init(Map<String, Object> configuration) {
-        new BaseLogFormatter(timeStampFormatter(), 0, 0);
+    public BaseLogFormatter(Map<String,Object> configuration) {
+        super(configuration);
     }
 
-    private DateFormat timeStampFormatter(){
-        //ToDo apply DateFormatter
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz" , Locale.US);
+    private static DateFormat timeStampFormatter(){
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz");
     }
-
 
     /**
      Returns a formatted representation of the given `LogEntry`.
@@ -54,10 +52,9 @@ public class BaseLogFormatter implements LogFormatter {
      implementation will never return `nil`.
      */
     public String formatLogEntry( LogEntry logEntry, String message){
-       // precondition(false, "Must override this");
+        // precondition(false, "Must override this");
         return null;
     }
-
 
     /**
      Returns a string representation for a calling file and line.
@@ -112,7 +109,7 @@ public class BaseLogFormatter implements LogFormatter {
             case VALUE:
                 return stringRepresentationForValuePayload(entry.value);
         }
-        return  "";
+        return  "-"; // Used for trace since System out doesn't print empty line
     }
 
 
@@ -157,25 +154,24 @@ public class BaseLogFormatter implements LogFormatter {
         }
     }
 
+    /**
+     Returns a string representation of an arbitrary value.
 
-        /**
-         Returns a string representation of an arbitrary value.
+     This implementation is used by the `DefaultLogFormatter` for creating
+     string representations of `LogEntry` instances containing `.Value` payloads.
 
-         This implementation is used by the `DefaultLogFormatter` for creating
-         string representations of `LogEntry` instances containing `.Value` payloads.
+     :param:     value The value for which a string representation is desired.
 
-         :param:     value The value for which a string representation is desired.
-
-         :returns:   A string representation of `value`.
-         */
-        public static String stringRepresentationForValue(@NonNull Object value){
-            String type = ObjectType.getType(value);
-            String desc= value.toString();
-            if(value.toString() instanceof  Object){
-                desc = "(no description)";
-            }
-           return "<" + type + " : " + desc + " >";
-       }
+     :returns:   A string representation of `value`.
+     */
+    public static String stringRepresentationForValue(@NonNull Object value){
+        String type = ObjectType.getType(value);
+        String desc= value.toString();
+        if(value.toString() instanceof  Object){
+            desc = "(no description)";
+        }
+       return "<" + type + " : " + desc + " >";
+    }
 
     /**
      Returns a string representation of a given `LogSeverity` value.
@@ -225,7 +221,6 @@ public class BaseLogFormatter implements LogFormatter {
         return BaseLogFormatter.stringRepresentation(severity.description(), severityTagLength, false);
     }
 
-
     /**
      Returns a string representation of a given `LogSeverity` value.
 
@@ -270,7 +265,7 @@ public class BaseLogFormatter implements LogFormatter {
 
      :returns:   The string representation of `threadID`.
      */
-    public  static String stringRepresentationOfThreadID(int threadID){
+    public  static String stringRepresentationOfThreadID(long threadID){
         return String.format("%08X", threadID);
     }
 
@@ -278,6 +273,5 @@ public class BaseLogFormatter implements LogFormatter {
     public String toString() {
         return super.toString();
     }
-
 
 }

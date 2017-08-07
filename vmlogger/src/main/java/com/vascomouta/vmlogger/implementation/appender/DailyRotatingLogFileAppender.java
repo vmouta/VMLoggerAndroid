@@ -1,23 +1,24 @@
 package com.vascomouta.vmlogger.implementation.appender;
 
+import android.os.Environment;
+
 import com.vascomouta.vmlogger.Log;
-import com.vascomouta.vmlogger.LogAppender;
 import com.vascomouta.vmlogger.LogEntry;
+import com.vascomouta.vmlogger.LogFilter;
 import com.vascomouta.vmlogger.LogFormatter;
 import com.vascomouta.vmlogger.implementation.BaseLogAppender;
+import com.vascomouta.vmlogger.implementation.formatter.DefaultLogFormatter;
 import com.vascomouta.vmlogger.utils.DispatchQueue;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,6 +33,13 @@ import java.util.Set;
  */
 public class DailyRotatingLogFileAppender extends BaseLogAppender {
 
+    public static String FILENAMEDATEFORMAT = "filenamedateformat";
+    public static String DAYSTOKEEP = "daystokeep";
+    public static String DIRECTORYTOPATH = "directorypath";
+
+    public static String DEFAULTFILENAMEDATEFORMAT = "yyyy-MM-dd'.log'";
+    public static String DEFAULTDAYSTOKEEP= "30";
+    public static String DEFAULTDIRECTORYPATH = "/logs";
 
     /**
      * The number of days for which the receiver will retain log files
@@ -44,37 +52,61 @@ public class DailyRotatingLogFileAppender extends BaseLogAppender {
      * stored.
      */
     public String directoryPath;
+    public String directoryURLPath;
+
+    private String filenameDateFormatter;
+    private DateFormat getFileNameFormatter() {
+        return new SimpleDateFormat(filenameDateFormatter);
+    }
 
     private Date mostRecentLogTime;
     private FileLogAppender currentFileRecorder;
 
-
-    private static DateFormat fileNameFormatter() {
-        return new SimpleDateFormat("yyyy-MM-dd'.log'");
+    public DailyRotatingLogFileAppender(int daysToKeep, String directoryPath) {
+        this(daysToKeep, directoryPath, new ArrayList<LogFormatter>(Arrays.asList(new DefaultLogFormatter())));
     }
 
     public DailyRotatingLogFileAppender(int daysToKeep, String directoryPath, ArrayList<LogFormatter> formatters) {
-       // super("DailyRotatingLogFileRecorder/directoryPath", formatters);
-        this.daysToKeep = daysToKeep;
-        this.directoryPath = directoryPath;
-        try {
-            // try to create the directory that will contain the log files
-            String url = new URL(directoryPath).getPath();
-            File file = new File(url);
-            file.createNewFile();
-        }catch (MalformedURLException ex){
-
-        }catch (IOException e){
-
-        }
+        this(daysToKeep, directoryPath, formatters, new ArrayList<LogFilter>());
     }
 
+    public DailyRotatingLogFileAppender(int daysToKeep, String directoryPath, ArrayList<LogFormatter> formatters, ArrayList<LogFilter> filters) {
+        this("DailyRotatingLogFileRecorder["+directoryPath+"]", DEFAULTFILENAMEDATEFORMAT, daysToKeep, directoryPath, formatters, filters);
+    }
 
-    @Override
-    public LogAppender init(HashMap<String, Object> configuration) {
-        // fatalError("init(configuration:) has not been implemented")
-        return super.init(configuration);
+    public DailyRotatingLogFileAppender(String name, String dateformat, int daysToKeep, String directoryPath, ArrayList<LogFormatter> formatters, ArrayList<LogFilter> filters) {
+        super(name, formatters, filters);
+        this.filenameDateFormatter = dateformat;
+        this.daysToKeep = daysToKeep;
+        this.directoryPath = directoryPath;
+        this.directoryURLPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + this.directoryPath;
+        File dir = new File(this.directoryURLPath);
+        dir.mkdirs();
+    }
 
+    public DailyRotatingLogFileAppender(Map<String, Object> configuration) {
+        super(configuration);
+        String fileNameDateFormat = (String) configuration.get(FILENAMEDATEFORMAT);
+        if(fileNameDateFormat != null) {
+            this.filenameDateFormatter = fileNameDateFormat;
+        } else {
+            this.filenameDateFormatter = DEFAULTFILENAMEDATEFORMAT;
+        }
+        String daysToKeep = (String) configuration.get(DAYSTOKEEP);
+        if(daysToKeep != null) {
+            this.daysToKeep = Integer.getInteger(daysToKeep);
+        } else {
+            this.daysToKeep = Integer.getInteger(DEFAULTDAYSTOKEEP);
+        }
+        String directoryPath = (String) configuration.get(DIRECTORYTOPATH);
+        if(directoryPath != null) {
+            this.directoryPath = directoryPath;
+        } else {
+            this.directoryPath = DEFAULTDIRECTORYPATH;
+        }
+        this.directoryURLPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + this.directoryPath;
+        File dir = new File(this.directoryURLPath);
+        dir.mkdirs();
     }
 
     /**
@@ -84,7 +116,7 @@ public class DailyRotatingLogFileAppender extends BaseLogAppender {
      * @return The filename.
      */
     public String logFilenameForDate(Date date){
-        return fileNameFormatter().format(date);
+        return getFileNameFormatter().format(date);
     }
 
     private FileLogAppender fileLogRecordedForDate(Date date, String directoryPath, ArrayList<LogFormatter> formatters){
@@ -127,7 +159,6 @@ public class DailyRotatingLogFileAppender extends BaseLogAppender {
         currentFileRecorder.recordFormatterMessage(message, logEntry, dispatchQueue, synchronousMode);
     }
 
-
     /**
      *
      */
@@ -140,36 +171,22 @@ public class DailyRotatingLogFileAppender extends BaseLogAppender {
         for (int i = 0; i < daysToKeep; i++) {
             String fileName = logFilenameForDate(date);
             filesToKeep.add(fileName);
-           // date = (cal as NSCalendar).date(byAdding: .day, value: -1, to: date, options: .wrapComponents)!
+            cal.setTime(date);
+            cal.add(Calendar.DATE, -1);
+            date = cal.getTime();
         }
 
-        do {
-            File file = new File(directoryPath);
-            for(File filename : file.listFiles()){
-
-
-              //  let pathsToRemove = filenames
-           //             .filter { return !$0.hasPrefix(".") }
-           //     .filter { return !filesToKeep.contains($0) }
-           //     .map { return (self.directoryPath as NSString).appendingPathComponent($0) }
-
-            }
-            File[] pathToRemove = file.listFiles();
-            for (File removeFile : pathToRemove) {
+        File file = new File(directoryURLPath);
+        for(File filename : file.listFiles()){
+            if(filesToKeep.contains(filename.getName()) == false) {
                 try {
-                    removeFile.delete();
+                    filename.delete();
                 } catch (Exception ex) {
-                    Log.printError("Error attempting to delete the unneeded file" +  removeFile.getPath() + ex.getMessage());
+                    Log.e("Error attempting to delete the unneeded file" +  filename.getAbsolutePath() + ":" + ex.getMessage());
                 }
             }
-
-
-        }while (true);
-
+        }
     }
-
-
-
 }
 
 

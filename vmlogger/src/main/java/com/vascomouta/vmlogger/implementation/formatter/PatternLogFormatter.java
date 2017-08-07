@@ -1,7 +1,6 @@
 package com.vascomouta.vmlogger.implementation.formatter;
 
 import com.vascomouta.vmlogger.LogEntry;
-import com.vascomouta.vmlogger.constant.PatternLogFormatterConstants;
 import com.vascomouta.vmlogger.implementation.BaseLogFormatter;
 import com.vascomouta.vmlogger.utils.OffsetBasedMatchResult;
 
@@ -15,6 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PatternLogFormatter  extends BaseLogFormatter{
+
+    public static String PATTERN = "pattern";
 
     public static  String defaultLogFormat = "%.30d [%thread] %-7p %-20.-20c - %m";
 
@@ -39,7 +40,7 @@ public class PatternLogFormatter  extends BaseLogFormatter{
     private static String[] patterns = {MDC,identifier,level,date,message,thread,caller,function,file,line,lineSeparator};
     //private static let patterns: [String] = [date]
 
-    String pattern;
+    String patternParametter;
 
     /**
      * Patterns
@@ -72,17 +73,12 @@ public class PatternLogFormatter  extends BaseLogFormatter{
      * @param pattern
      */
     public PatternLogFormatter(String pattern){
-        this.pattern = pattern;
+        this.patternParametter = pattern;
     }
 
-    @Override
-    public void init(Map<String, Object> configuration) {
-        super.init(configuration);
-        String pattern = (String)configuration.get(PatternLogFormatterConstants.Pattern);
-                if(pattern == null){
-                    return;
-                }
-        new PatternLogFormatter(pattern);
+    public PatternLogFormatter(Map<String, Object> configuration) {
+        super(configuration);
+        patternParametter = (String)configuration.get(PATTERN);
     }
 
     /**
@@ -94,8 +90,8 @@ public class PatternLogFormatter  extends BaseLogFormatter{
     @Override
     public String formatLogEntry(LogEntry logEntry, String message) {
         super.formatLogEntry(logEntry, message);
-        String resultString = pattern;
-        Pattern regex = Pattern.compile(PatternLogFormatter.grouping);
+        String resultString = patternParametter;
+        Pattern regex = java.util.regex.Pattern.compile(PatternLogFormatter.grouping);
         if(regex != null){
             ArrayList<MatchResult> allMatches = getAllMatches(regex, resultString);
             if(allMatches.size() > 0){
@@ -182,7 +178,7 @@ public class PatternLogFormatter  extends BaseLogFormatter{
      */
     public String formatSpecifiers(String expression, String replacement) {
         String newReplacement = replacement;
-        Pattern regex = Pattern.compile(PatternLogFormatter.lengthPattern);
+        Pattern regex = java.util.regex.Pattern.compile(PatternLogFormatter.lengthPattern);
         if (regex != null) {
             ArrayList<MatchResult> matches = getAllMatches(regex, expression);
             if (matches.size() > 0) {
@@ -234,7 +230,7 @@ public class PatternLogFormatter  extends BaseLogFormatter{
         TreeMap<Integer, OffsetBasedMatchResult> orderMatches = new TreeMap<>();
         String details = pattern;
         for(String pat : PatternLogFormatter.patterns) {
-            Pattern regex = Pattern.compile(pat);
+            Pattern regex = java.util.regex.Pattern.compile(pat);
             if(regex != null){
                 for(OffsetBasedMatchResult matchResult : allMatches(regex, details)){
                     orderMatches.put(matchResult.getMatchResult().start(), matchResult);
@@ -256,9 +252,7 @@ public class PatternLogFormatter  extends BaseLogFormatter{
                 }else if(patternExpression.equals(PatternLogFormatter.message)){
                     replacement = message;
                 }else if(patternExpression.equals(PatternLogFormatter.thread)){
-                    int threadID = 0;
-                    //TODO
-                    // pthread_threadid_np(nil, &threadID)
+                    long threadID = Thread.currentThread().getId();
                     replacement = String.valueOf(threadID);
                 }else if(patternExpression.equals(PatternLogFormatter.caller)){
                     replacement = String.valueOf(entry.callingThreadID);
@@ -289,8 +283,4 @@ public class PatternLogFormatter  extends BaseLogFormatter{
         caller +=  entry.callingFileLine + ")";
         return caller;
     }
-
-
-
-
 }

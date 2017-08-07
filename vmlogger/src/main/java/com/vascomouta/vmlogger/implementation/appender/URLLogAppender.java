@@ -1,28 +1,51 @@
 package com.vascomouta.vmlogger.implementation.appender;
 
-import android.util.Log;
-
-import com.vascomouta.vmlogger.LogAppender;
 import com.vascomouta.vmlogger.LogEntry;
 import com.vascomouta.vmlogger.LogFilter;
 import com.vascomouta.vmlogger.LogFormatter;
-import com.vascomouta.vmlogger.constant.URLLogAppendContants;
 import com.vascomouta.vmlogger.implementation.BaseLogAppender;
 import com.vascomouta.vmlogger.utils.DispatchQueue;
-import com.vascomouta.vmlogger.webservice.ConnectivityController;
-import com.vascomouta.vmlogger.webservice.HttpUrlConnectionUtil;
-import com.vascomouta.vmlogger.webservice.Response;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.http.GET;
+import retrofit2.http.Body;
+import retrofit2.http.HeaderMap;
+import retrofit2.http.PUT;
+import retrofit2.http.Query;
+import retrofit2.http.QueryName;
 
 public class URLLogAppender extends BaseLogAppender {
 
+    public interface URLLogAppenderService {
+        @GET
+        public Call<ResponseBody> getLog(
+                @HeaderMap Map<String, String> headers,
+                @Query("log") String options
+        );
+
+        @PUT
+        public Call<ResponseBody> postLog(
+                @HeaderMap Map<String, String> headers,
+                @QueryName String options,
+                @Body String body
+        );
+    }
+    URLLogAppenderService service;
+
+    public static String SERVERURL = "url";
+    public static String HEADERS = "headers";
+    public static String METHOD = "method";
+    public static String PARAMETER = "parameter";
 
     public String url;
 
-    public HashMap<String, String> headers;
+    public Map<String, String> headers;
 
     public String method;
 
@@ -31,6 +54,7 @@ public class URLLogAppender extends BaseLogAppender {
     public URLLogAppender(){
 
     }
+
     /**
      * Attempts to initialize a new `UrlLogAppender` instance to use the
      * given file path and log formatters. This will fail if `filePath` could
@@ -41,10 +65,9 @@ public class URLLogAppender extends BaseLogAppender {
      * @param headers apiKey
      * @param formatters formatters The `LogFormatter`s to use for the recorder.
      */
-    public  URLLogAppender(String url, String method, String  parameter, HashMap<String, String> headers, ArrayList<LogFormatter> formatters) {
-      new URLLogAppender("URLLogRecorder[" + url + "]", url, method, parameter, headers, formatters, new ArrayList<LogFilter>());
+    public URLLogAppender(String url, String method, String  parameter, HashMap<String, String> headers, ArrayList<LogFormatter> formatters) {
+        this("URLLogRecorder[" + url + "]", url, method, parameter, headers, formatters, new ArrayList<LogFilter>());
     }
-
 
     /**
      * Attempts to initialize a new `FileLogRecorder` instance to use the
@@ -65,67 +88,37 @@ public class URLLogAppender extends BaseLogAppender {
         this.method = method;
         this.headers = headers;
         this.parameter = parameter;
-
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(this.url)
+                .build();
+        service = retrofit.create(URLLogAppenderService.class);
     }
 
-    @Override
-    public LogAppender init(HashMap<String, Object> configuration) {
-        URLLogConfiguration config =  URLLogConfiguration(configuration);
-        if(config == null){
-            return null;
-        }
-      return  new URLLogAppender(config.name, config.url, config.method, config.parameter, config.headers, config.formatters,config.filters);
-    }
+    public URLLogAppender(HashMap<String, Object> configuration) {
+        super(configuration);
 
+        // URL
+        url = (String)configuration.get(URLLogAppender.SERVERURL);
 
+        // Headers
+        headers = (HashMap<String, String>) configuration.get(URLLogAppender.HEADERS);
 
-    public URLLogConfiguration URLLogConfiguration(HashMap<String, Object> configuration){
-
-        LogAppender config = configuration(configuration);
-        if(config == null){
-            return null;
-        }
-
-        String url = (String)configuration.get(URLLogAppendContants.ServerUrl);
-
-        HashMap<String, String> headers = (HashMap<String, String>) configuration.get(URLLogAppendContants.Headers);
-        if(headers == null){
-            headers = new HashMap<>();
-        }
-
-        String method = (String) configuration.get(URLLogAppendContants.Method);
+        // Method
+        String method = (String) configuration.get(URLLogAppender.METHOD);
         if(method == null){
-            method = "POST";
-        }
-
-        String parameter = (String) configuration.get(URLLogAppendContants.Parameter);
-        if(parameter == null){
-            parameter = "";
-        }
-
-        return new URLLogConfiguration(config.name, url, method, parameter, headers, config.formatters, config.filters);
-    }
-
-    public class URLLogConfiguration{
-        String name;
-        String url;
-        String method;
-        String parameter;
-        HashMap<String, String> headers;
-        ArrayList<LogFormatter> formatters;
-        ArrayList<LogFilter> filters;
-
-        public URLLogConfiguration(String name, String url , String method, String parameter, HashMap<String, String> headers,
-                                   ArrayList<LogFormatter> formatters, ArrayList<LogFilter> filters){
-            this.name = name;
+            this.method = "POST";
+        } else {
             this.method = method;
-            this.parameter = parameter;
-            this.headers = headers;
-            this.formatters = formatters;
-            this.filters = filters;
         }
-    }
 
+        // Parameters
+        parameter = (String) configuration.get(URLLogAppender.PARAMETER);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(this.url)
+                .build();
+        service = retrofit.create(URLLogAppenderService.class);
+    }
 
     /**
      * /**
@@ -143,21 +136,10 @@ public class URLLogAppender extends BaseLogAppender {
      */
     @Override
     public void recordFormatterMessage(final String message, LogEntry logEntry, DispatchQueue dispatchQueue, boolean synchronousMode) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Response response = HttpUrlConnectionUtil.request("http://192.168.1.126:8080/UMS/sendLog",message, method, headers);
-                if(response != null){
-                    Log.d("URLLogAppender", "Log post to server sucessfully");
-                }
-            }
-        }).start();
-
+        if(this.method == "POST") {
+            service.postLog(this.headers, this.parameter, message);
+        } else {
+            service.getLog(this.headers, message);
+        }
     }
-
-    public void setRequestHeaders () {
-        //TODO add headers on reqest
-
-    }
-
 }

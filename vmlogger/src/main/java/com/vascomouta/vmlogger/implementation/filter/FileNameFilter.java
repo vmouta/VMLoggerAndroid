@@ -6,10 +6,11 @@ import com.vascomouta.vmlogger.LogFilter;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 
-public class FileNameFilter implements LogFilter {
+public class FileNameFilter extends LogFilter {
 
 
     // Option to toggle the match results
@@ -20,9 +21,6 @@ public class FileNameFilter implements LogFilter {
 
     // Internal list of fileNames to match against
     private Set<String> fileNamesToMatch = new HashSet<>();
-
-    FileNameFilter(){}
-
 
     /**
      * Initializer to create an inclusion list of fileNames to match against
@@ -41,7 +39,7 @@ public class FileNameFilter implements LogFilter {
     /**
      *
      * @param fileName Name of the file to match against.
-     * @return true: FileName added. false:    FileName already added.
+     * @return true: FILENAME added. false:    FILENAME already added.
      */
     public boolean add(String fileName){
         String fn;
@@ -66,11 +64,24 @@ public class FileNameFilter implements LogFilter {
         }
     }
 
-    @Override
-    public LogFilter init(HashMap<String, Object> configuration) {
-        return null;
+    public void clear(){
+        fileNamesToMatch.clear();
     }
 
+    //TODO need to change description
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+
+    /* From LogFilter */
+
+    /**
+     * Called to determine whether the given `LogEntry` should be recorded.
+     * @param logEntry : entry The `LogEntry` to be evaluated by the filter.
+     * @return : `true` if `entry` should be recorded, `false` if not.
+     */
     @Override
     public boolean shouldRecordLogEntry(LogEntry logEntry) {
         String file = logEntry.callingFilePath;
@@ -85,13 +96,13 @@ public class FileNameFilter implements LogFilter {
         return matched;
     }
 
-    public void clear(){
-        fileNamesToMatch.clear();
-    }
+    /**
+     * constructor to be used by introspection
+     * @param configuration configuration for the filter
+     * @return if configuration is correct a new LogFilter
+     */
+    public FileNameFilter(Map<String,Object> configuration) throws NoSuchMethodException {
+        super();
 
-    //TODO need to change description
-    @Override
-    public String toString() {
-        return super.toString();
     }
 }

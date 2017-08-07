@@ -3,11 +3,9 @@ package com.vascomouta.vmlogger.implementation.appender;
 import android.os.Environment;
 
 import com.vascomouta.vmlogger.Log;
-import com.vascomouta.vmlogger.LogAppender;
 import com.vascomouta.vmlogger.LogEntry;
 import com.vascomouta.vmlogger.LogFilter;
 import com.vascomouta.vmlogger.LogFormatter;
-import com.vascomouta.vmlogger.constant.FileLogAppenderConstant;
 import com.vascomouta.vmlogger.implementation.BaseLogAppender;
 import com.vascomouta.vmlogger.utils.DispatchQueue;
 
@@ -16,7 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A `LogRecorder` implementation that stores log messages in a file.
@@ -27,6 +25,8 @@ import java.util.HashMap;
  */
 public class FileLogAppender extends BaseLogAppender {
 
+    public static String FILENAME = "fileName";
+
     /** The path of the file to which log messages will be written. */
     public String  filePath;
 
@@ -34,7 +34,7 @@ public class FileLogAppender extends BaseLogAppender {
     private String newlineCharset;
 
      public FileLogAppender(){
-
+        super();
      }
 
     /**
@@ -48,7 +48,7 @@ public class FileLogAppender extends BaseLogAppender {
      * @param formatters formatters The `LogFormatter`s to use for the recorder.
      */
     public FileLogAppender(String filePath, ArrayList<LogFormatter> formatters){
-        new FileLogAppender(filePath, filePath, formatters, new ArrayList<LogFilter>());
+        this("FileLogRecorder["+filePath+"]", filePath, formatters, new ArrayList<LogFilter>());
     }
 
     public FileLogAppender(String name, String filePath, ArrayList<LogFormatter> formatters, ArrayList<LogFilter> filters){
@@ -64,18 +64,19 @@ public class FileLogAppender extends BaseLogAppender {
         }
     }
 
+    public FileLogAppender(Map<String, Object> configuration) {
+        super(configuration);
 
-    @Override
-    public LogAppender init(HashMap<String, Object> configuration) {
-        String filePath = (String) configuration.get(FileLogAppenderConstant.FileName);
-        if(filePath == null){
-            return null;
+        String filePath = (String) configuration.get(FILENAME);
+        File directory  = Environment.getExternalStorageDirectory();
+        String nsSt = directory.getPath();
+        String fileNamePath =  nsSt.concat("/" + filePath);
+        File file = new File(fileNamePath);
+        if(file != null) {
+            this.filePath = fileNamePath;
+            this.file = file;
+            this.newlineCharset = "/n";
         }
-        LogAppender config = super.init(configuration);
-        if(config == null){
-            return null;
-        }
-        return new FileLogAppender(config.name, filePath, config.formatters, config.filters);
     }
 
     @Override
@@ -89,7 +90,7 @@ public class FileLogAppender extends BaseLogAppender {
             bufferedWriter.write(message + "\n");
             bufferedWriter.close();
         }catch (IOException ex){
-            Log.printError("Error on write logs on file" + ex.getMessage());
+            Log.e("Error on write logs on file" + ex.getMessage());
         }
     }
 }

@@ -2,7 +2,6 @@ package com.vascomouta.vmlogger.implementation.filter;
 
 import com.vascomouta.vmlogger.LogEntry;
 import com.vascomouta.vmlogger.LogFilter;
-import com.vascomouta.vmlogger.constant.ValueTypeFilterConstant;
 import com.vascomouta.vmlogger.utils.ObjectType;
 
 import java.util.ArrayList;
@@ -12,7 +11,9 @@ import java.util.HashMap;
  * A `LogFilter` implementation that filters out any `LogEntry` with a
  *`LogSeverity` less than a specified value.
  */
-public class ValueTypeFilter implements LogFilter {
+public class ValueTypeFilter extends LogFilter {
+
+    public static String Types = "types";
 
     /**
      * Returns the `LogSeverity` associated with the receiver.
@@ -23,6 +24,9 @@ public class ValueTypeFilter implements LogFilter {
 
     }
 
+    public ValueTypeFilter(HashMap<String, Object> configuration) {
+        type = (ArrayList<String>) configuration.get(Types);
+    }
 
     /**
      * Initializes a new `LogSeverityFilter` instance.
@@ -33,16 +37,6 @@ public class ValueTypeFilter implements LogFilter {
      */
     public ValueTypeFilter(ArrayList<String> types){
         this.type = types;
-    }
-
-
-    @Override
-    public LogFilter init(HashMap<String, Object> configuration) {
-            ArrayList<String> types = (ArrayList<String>) configuration.get(ValueTypeFilterConstant.Types);
-            if(types != null){
-             return   new ValueTypeFilter(types);
-            }
-        return null;
     }
 
     @Override

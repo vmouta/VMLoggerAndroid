@@ -1,7 +1,5 @@
 package com.vascomouta.vmlogger;
 
-import com.vascomouta.vmlogger.enums.Payload;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -11,6 +9,10 @@ public class LogEntry {
     public LogConfiguration logger;
 
     /** The payload of the log entry. */
+    public enum Payload{
+
+        TRACE, MESSAGE, VALUE
+    }
     public Payload payload;
 
     /** The level of the log entry. */
@@ -28,7 +30,7 @@ public class LogEntry {
 
     /** A numeric identifier for the calling thread. Note that thread IDs are
      recycled over time. */
-    public int callingThreadID;
+    public long callingThreadID;
 
     /** The time at which the `LogEntry` was created. */
     public Date timestamp;
@@ -62,7 +64,7 @@ public class LogEntry {
      to the current time if not specified.
      */
     public LogEntry(LogConfiguration logger, Payload payload, LogLevel logLevel, Map<String, Object> userInfo,
-                String callingFilePath,String callingFunction,  int callingFileLine, int callingThreadID, Date timestamp, String message , Object value) {
+                String callingFilePath,String callingFunction,  int callingFileLine, long callingThreadID, Date timestamp, String message , Object value) {
         this.logger = logger;
         this.payload = payload;
         this.logLevel = logLevel;
@@ -75,7 +77,4 @@ public class LogEntry {
         this.message = message;
         this.value = value;
     }
-
-
-
 }

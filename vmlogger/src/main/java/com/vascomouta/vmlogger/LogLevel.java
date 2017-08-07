@@ -23,7 +23,6 @@ public enum LogLevel {
         this.value = value;
     }
 
-
     String getLevel(){
       return level;
     }
@@ -32,7 +31,7 @@ public enum LogLevel {
         return value;
     }
 
-    public String getLogLevel(LogLevel level){
+    public static String getLogLevel(LogLevel level){
         switch (level){
             case OFF:
                 return OFF.getLevel();

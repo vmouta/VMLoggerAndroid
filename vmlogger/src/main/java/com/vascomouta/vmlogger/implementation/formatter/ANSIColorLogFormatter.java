@@ -17,45 +17,60 @@ import java.util.Map;
 public class ANSIColorLogFormatter extends BaseLogFormatter {
 
     /// ANSI Escape code
-    public static int escape = Color.BLACK;
+    public static String escape = "\\u{001b}[";
 
     /// ANSI Reset colours code
-    public static int reset = escape;
+    public static String reset = escape+"m";
 
     public enum ANSIColor{
-        BLACK(30, 40, "Black"),
-        RED(31, 41, "Red"),
-        GREEN(32, 42, "Green"),
-        YELLOW(33, 43, "Yellow"),
-        BLUE(34, 44, "Blue"),
-        MAGENTA(35, 45, "Magenta"),
-        CYAN(36, 46, "Cyan"),
-        LIGHTGREY(37, 47, "LightGrey"),
-        DARKGREY(90, 100, "DarkGrey"),
-        LIGHTRED(91, 101, "LightRed"),
-        LIGHTGREEN(92,102, "LightGreen"),
-        LIGHTYELLOW(93, 103, "LightYellow"),
-        LIGHTBLUE(94, 104, "LightBlue"),
-        LIGHTMAGENTA(95, 105, "LightMagenta"),
-        LIGHTCYAN(96, 106, "LightCyan"),
-        WHITE(97, 107, "White"),
-        DEFAULT(39, 49, "Default");
-//        RGB(""),
-//        COLORINDEX("");
+        BLACK("30", "40", "Black"),
+        RED("31", "41", "Red"),
+        GREEN("32", "42", "Green"),
+        YELLOW("33", "43", "Yellow"),
+        BLUE("34", "44", "Blue"),
+        MAGENTA("35", "45", "Magenta"),
+        CYAN("36", "46", "Cyan"),
+        LIGHTGREY("37", "47", "LightGrey"),
+        DARKGREY("90", "100", "DarkGrey"),
+        LIGHTRED("91", "101", "LightRed"),
+        LIGHTGREEN("92","102", "LightGreen"),
+        LIGHTYELLOW("93", "103", "LightYellow"),
+        LIGHTBLUE("94", "104", "LightBlue"),
+        LIGHTMAGENTA("95", "105", "LightMagenta"),
+        LIGHTCYAN("96", "106", "LightCyan"),
+        WHITE("97", "107", "White"),
+        DEFAULT("39", "49", "Default");
 
-        public int foreground;
-        public int background;
+        public String foreground;
+        public String background;
 
-        ANSIColor(int foreground, int background, String description){
+        ANSIColor(String foreground, String background, String description){
             this.foreground = foreground;
             this.background = background;
         }
 
-        public int getForeground(){
+        ANSIColor(int r, int g, int b, String description, String background){
+            this("38;2;"+Math.min(Math.max(0, r), 255)+";"+Math.min(Math.max(0, g), 255)+";"+Math.min(Math.max(0, b), 255), background, description);
+        }
+
+        ANSIColor(String foreground, String description, int r, int g, int b){
+            this(foreground, "48;2;"+Math.min(Math.max(0, r), 255)+";"+Math.min(Math.max(0, g), 255)+";"+Math.min(Math.max(0, b), 255), description);
+        }
+
+        ANSIColor(int r, int g, int b, String description, int br, int bg, int bb){
+            this("38;2;"+Math.min(Math.max(0, r), 255)+";"+Math.min(Math.max(0, g), 255)+";"+Math.min(Math.max(0, b), 255),
+                    "48;2;"+Math.min(Math.max(0, r), 255)+";"+Math.min(Math.max(0, g), 255)+";"+Math.min(Math.max(0, b), 255), description);
+        }
+
+        ANSIColor(int foregroundIndex, int backgroundIndex, String description){
+            this("38;5;"+Math.min(Math.max(0, foregroundIndex), 255), "48;5;"+Math.min(Math.max(0, backgroundIndex), 255), description);
+        }
+
+        public String getForeground(){
             return foreground;
         }
 
-        public int getBackground(){
+        public String getBackground(){
             return background;
         }
 
@@ -63,25 +78,24 @@ public class ANSIColorLogFormatter extends BaseLogFormatter {
 
 
     public enum ANSIOptions{
-         BOLD(1, "Bold"),
-         FAINT(2, "Faint"),
-         ITALIC(3, "Italic"),
-         UNDERLINE(4, "Underline"),
-         BLINK(5 , "Blink"),
-         BLINKFAST(6, "BlinkFast"),
-         STRIKETHROUGH(9, "StrikeThrough");
+         BOLD("1", "Bold"),
+         FAINT("2", "Faint"),
+         ITALIC("3", "Italic"),
+         UNDERLINE("4", "Underline"),
+         BLINK("5", "Blink"),
+         BLINKFAST("6", "BlinkFast"),
+         STRIKETHROUGH("9", "StrikeThrough");
 
-        public int value;
+        public String value;
         public  String label;
 
-        ANSIOptions(int value, String label){
+        ANSIOptions(String value, String label){
             this.value = value;
             this.label = label;
         }
-
     }
 
-
+    /// Internal cache of the ANSI codes for each log level
     private HashMap<LogLevel, String> formatStrings = new HashMap<>();
 
     /// Internal cache of the description for each log level
@@ -92,13 +106,9 @@ public class ANSIColorLogFormatter extends BaseLogFormatter {
         resetFormatting();
     }
 
-
-    @Override
-    public void init(Map<String, Object> configuration) {
-        super.init(configuration);
+    ANSIColorLogFormatter(Map<String, Object> configuration) {
+        this();
     }
-
-
 
     public void colorize(LogLevel level, ANSIColor foregroundColor,ANSIColor backgroundColor, ArrayList<ANSIOptions> options) {
         StringBuilder codes = new StringBuilder(String.valueOf(foregroundColor.getForeground()) +String.valueOf(backgroundColor.getBackground()));
@@ -155,6 +165,5 @@ public class ANSIColorLogFormatter extends BaseLogFormatter {
     @Override
     public String formatLogEntry(LogEntry logEntry, String message) {
         return formatString(logEntry.logLevel) + message + ANSIColorLogFormatter.reset;
-
     }
 }

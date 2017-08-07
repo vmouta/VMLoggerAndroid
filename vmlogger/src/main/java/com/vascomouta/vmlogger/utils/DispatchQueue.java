@@ -3,13 +3,16 @@ package com.vascomouta.vmlogger.utils;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
-
 public class DispatchQueue {
+
+    private String name;
 
     private ExecutorService syncExecuterService;
     private ExecutorService asyncExecuterService;
 
+    public DispatchQueue(String name) {
+        this.name = name;
+    }
 
      public void sync(Runnable runnable){
          if(syncExecuterService == null) {
@@ -25,6 +28,4 @@ public class DispatchQueue {
         }
         asyncExecuterService.submit(runnable);
      }
-
-
 }

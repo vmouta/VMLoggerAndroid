@@ -3,7 +3,6 @@ package com.vascomouta.vmlogger.implementation.filter;
 import com.vascomouta.vmlogger.LogEntry;
 import com.vascomouta.vmlogger.LogLevel;
 
-
 public class MinimumLogLevelFilter extends LogLevelFilter{
 
     public MinimumLogLevelFilter(){}
@@ -21,6 +20,5 @@ public class MinimumLogLevelFilter extends LogLevelFilter{
     @Override
     public boolean shouldRecordLogEntry(LogEntry logEntry) {
         return LogLevel.getLogLevelValue(logEntry.logLevel) >= LogLevel.getLogLevelValue(severity);
-
     }
 }

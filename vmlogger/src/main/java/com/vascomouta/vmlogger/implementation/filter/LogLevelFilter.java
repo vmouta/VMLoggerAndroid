@@ -3,13 +3,12 @@ package com.vascomouta.vmlogger.implementation.filter;
 import com.vascomouta.vmlogger.LogEntry;
 import com.vascomouta.vmlogger.LogFilter;
 import com.vascomouta.vmlogger.LogLevel;
-import com.vascomouta.vmlogger.constant.LogLevelFilterConstant;
 
 import java.util.HashMap;
 
+public class LogLevelFilter extends LogFilter {
 
-public class LogLevelFilter implements LogFilter {
-
+    public static String Level  ="level";
 
     /**
      * Returns the `LogSeverity` associated with the receiver.
@@ -31,14 +30,8 @@ public class LogLevelFilter implements LogFilter {
         this.severity = severity;
     }
 
-
-    @Override
-    public LogLevelFilter init(HashMap<String, Object> configuration) {
-        String level = (String)configuration.get(LogLevelFilterConstant.Level);
-        if(level != null){
-           return new LogLevelFilter(LogLevel.getLogLevel(level));
-        }
-            return null;
+    public LogLevelFilter(HashMap<String, Object> configuration) {
+        severity = LogLevel.getLogLevel((String)configuration.get(Level));
     }
 
     @Override

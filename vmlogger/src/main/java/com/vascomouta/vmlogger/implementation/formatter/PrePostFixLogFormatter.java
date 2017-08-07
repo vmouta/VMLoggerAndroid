@@ -7,7 +7,6 @@ import com.vascomouta.vmlogger.implementation.BaseLogFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-
 // MARK: - PrePostFixLogFormatter
 /// A log formatter that will optionally add a prefix, and/or postfix string to a message
 public class PrePostFixLogFormatter extends BaseLogFormatter {
@@ -18,11 +17,9 @@ public class PrePostFixLogFormatter extends BaseLogFormatter {
     /// Internal cache of the postfix strings codes for each log level
     private HashMap<LogLevel, String> postfixStrings = new HashMap<>();
 
-    @Override
-    public void init(Map<String, Object> configuration) {
-        super.init(configuration);
+    PrePostFixLogFormatter(Map<String, Object> configuration) {
+        super(configuration);
     }
-
 
     /**
      * Set the prefix/postfix strings for a specific log level.
@@ -89,4 +86,3 @@ public class PrePostFixLogFormatter extends BaseLogFormatter {
         return super.toString();
     }
 }
-

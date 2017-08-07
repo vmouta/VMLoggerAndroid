@@ -25,7 +25,6 @@ public class DefaultLogFormatter extends BaseLogFormatter {
 
     }
 
-
     /**
      * Initializes the DefaultLogFormatter using the given settings.
      * @param showThreadID
@@ -50,13 +49,6 @@ public class DefaultLogFormatter extends BaseLogFormatter {
         this.showFunctionName = showFunctionName;
         this.showFileName = showFileName;
         this.showLineNumber = showLineNumber;
-    }
-
-
-//TODO add fatal error
-    @Override
-    public void init(Map<String, Object> configuration) {
-      //  Log.printError("init(configuration:) has not been implemented");
     }
 
     @Override
