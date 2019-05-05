@@ -53,16 +53,19 @@ public class VMLoggerApplication extends Application implements Application.Acti
 
     @Override
     public void onActivityStarted(Activity activity) {
+        AppLogger.onStart();
         applogger.debug();
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
+        AppLogger.onResume();
         applogger.debug();
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
+        AppLogger.onPause();
         applogger.debug();
     }
 
@@ -78,7 +81,7 @@ public class VMLoggerApplication extends Application implements Application.Acti
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        AppLogger.onDestroy();
         applogger.debug();
     }
-
 }

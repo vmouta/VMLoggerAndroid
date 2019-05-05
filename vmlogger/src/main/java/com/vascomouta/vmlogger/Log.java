@@ -3,7 +3,7 @@ package com.vascomouta.vmlogger;
 import android.content.Context;
 import android.os.Environment;
 import android.support.annotation.RawRes;
-import android.support.coreui.BuildConfig;
+//import android.support.coreui.BuildConfig;
 
 import com.vascomouta.vmlogger.implementation.RootLogConfiguration;
 import com.vascomouta.vmlogger.implementation.appender.ConsoleLogAppender;
@@ -166,7 +166,7 @@ public class Log extends RootLogConfiguration implements LogFactory {
      * @param fileName
      * @return
      */
-    private static Map<String, Object> readConfigurationFromExternalFile( String fileName){
+    private static Map<String, Object> readConfigurationFromExternalFile(String fileName){
         return readConfigurationFromFile(new File(Environment.getExternalStorageDirectory(), fileName));
     }
 
@@ -588,9 +588,9 @@ public class Log extends RootLogConfiguration implements LogFactory {
 
     // * Event
 
-    public static void logEvent(Object value){
+    public static void ev(Object value){
         StackTraceElement stackTraceElement = Thread.currentThread().getStackTrace()[3];
-        value(getInstance(),LogLevel.SEVERE, value, stackTraceElement.getFileName(), stackTraceElement.getMethodName(),  stackTraceElement.getLineNumber());
+        value(getInstance(),LogLevel.EVENT, value, stackTraceElement.getFileName(), stackTraceElement.getMethodName(),  stackTraceElement.getLineNumber());
     }
 
     public void event(Object value){
@@ -680,7 +680,7 @@ public class Log extends RootLogConfiguration implements LogFactory {
                 s(description.toString());
                 break;
             case EVENT:
-                logEvent(description.toString());
+                ev(description.toString());
                 break;
             default:
                 break;

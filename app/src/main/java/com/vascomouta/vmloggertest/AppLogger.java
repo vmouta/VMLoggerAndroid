@@ -1,5 +1,11 @@
 package com.vascomouta.vmloggertest;
 
+import android.app.Activity;
+import android.app.Application;
+import android.os.Bundle;
+
+import android.arch.lifecycle.LifecycleObserver
+
 import com.vascomouta.vmlogger.Log;
 import com.vascomouta.vmlogger.LogAppender;
 import com.vascomouta.vmlogger.LogConfiguration;
@@ -11,12 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class AppLogger extends Log {
+public class AppLogger extends Log implements Application.ActivityLifecycleCallbacks {
 
     private static String AppLoggerUI = "TrackUI";
-    private static String ForgroundDuration = "ForgroundDuration";
+    private static String ForegroundDuration = "ForegroundDuration";
     private static String BackgroundDuration = "BackgroundDuration";
-    private static String Teriminated = "Terminated";
+    private static String Terminated = "Terminated";
 
     private static Date startDate = new Date(System.currentTimeMillis());
     private static Date eventDate = startDate;
@@ -49,40 +55,76 @@ public class AppLogger extends Log {
 
     /// Application life cicle
 
-    public void onPause() {
+    public static void onPause() {
         AppLogger.v("appMovedToBackground");
 
         Date end = new Date(System.currentTimeMillis());
         long diffInMs = end.getTime() - startDate.getTime();
         long timeInterval = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-        AppLogger.e(AppLoggerEvent.createEvent(AppLoggerEvent.UI, ForgroundDuration, String.valueOf(timeInterval), null));
+        AppLogger.ev(AppLoggerEvent.createEvent(AppLoggerEvent.UI, AppLogger.ForegroundDuration, String.valueOf(timeInterval), null));
         eventDate = new Date(System.currentTimeMillis());
     }
 
-    public void onResume() {
+    public static void onResume() {
         AppLogger.v("appMovedToForeground");
 
         Date end = new Date(System.currentTimeMillis());
         long diffInMs = end.getTime() - eventDate.getTime();
         long timeInterval = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-        AppLogger.e(AppLoggerEvent.createEvent(AppLoggerEvent.UI, BackgroundDuration, String.valueOf(timeInterval), null));
+        AppLogger.ev(AppLoggerEvent.createEvent(AppLoggerEvent.UI, AppLogger.BackgroundDuration, String.valueOf(timeInterval), null));
         eventDate = new Date(System.currentTimeMillis());
     }
 
-    public void onDestroy() {
+    public static void onDestroy() {
         AppLogger.v("appTerminate");
 
         Date end = new Date(System.currentTimeMillis());
         long diffInMs = end.getTime() - eventDate.getTime();
         long timeInterval = TimeUnit.MILLISECONDS.toSeconds(diffInMs);
-        AppLogger.e(AppLoggerEvent.createEvent(AppLoggerEvent.UI, Teriminated, String.valueOf(timeInterval), null));
+        AppLogger.ev(AppLoggerEvent.createEvent(AppLoggerEvent.UI, AppLogger.Terminated, String.valueOf(timeInterval), null));
     }
 
-    public void onStop() {
+    public static void onStop() {
         AppLogger.v("appResignActive");
     }
 
-    public void onStart() {
+    public static void onStart() {
         AppLogger.v("appBecomeActive");
+    }
+
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+
     }
 }
